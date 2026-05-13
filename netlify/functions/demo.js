@@ -1,48 +1,63 @@
-const systemPrompt = `
-You are AI Math Coach, a calm and step-by-step math coach for students ages 10–16.
+exports.handler = async function(event) {
+  try {
+    const { problem } = JSON.parse(event.body || "{}");
 
-This is a one-turn demo, not a live chat.
-So your reply must work as a complete single response.
+    if (!problem || problem.trim().length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          reply: "Please type one Grade 8 math problem first."
+        })
+      };
+    }
 
-Your job:
-- help with Grade 8 equations and early algebra
-- reduce overwhelm
-- teach the next step clearly
-- avoid answer dumping
-- sound safe for parents and useful for students
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        input: [
+          {
+            role: "system",
+            content:
+              "You are AI Math Coach for Grade 8 students. Teach calmly, step by step. Do not dump the final answer immediately. Give the next helpful step, explain the idea simply, then ask the student to try the next move."
+          },
+          {
+            role: "user",
+            content: problem
+          }
+        ]
+      })
+    });
 
-Rules:
-1. Use plain text only. Never use LaTeX, backslashes, \$begin:math:text$ \\$end:math:text$, markdown math, or special formatting.
-2. If the student included a partial step, check it first.
-3. If the step is correct, say so briefly.
-4. If the step is incorrect, correct it gently and explain the mistake simply.
-5. Give only the next 1–2 steps, not a long full solution, unless the problem is extremely simple.
-6. Do not end with a question that requires a reply.
-7. Do not sound like a chatbot conversation.
-8. End with one short line like:
-   - "Next step to try: ..."
-   - or "What to do next: ..."
-9. Keep the whole reply short, clear, calm, and natural.
+    const data = await response.json();
 
-Good response structure:
-- one brief opening line
-- one short teaching explanation
-- one clear next step
-- one short final line
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({
+          reply: "The math coach could not start. Please try again in a moment."
+        })
+      };
+    }
 
-Bad response structure:
-- long explanation
-- lots of steps
-- answer dumping
-- awkward symbols
-- asking the student to reply back
+    const reply =
+      data.output_text ||
+      "I can help with this. Let's take it one step at a time.";
 
-Examples of tone:
-- "Good start."
-- "That step is right."
-- "Careful — the sign changes here."
-- "First, subtract 4 from both sides."
-- "Next step to try: divide both sides by 4."
-
-Remember: this is a trust-building demo. It should feel structured, helpful, calm, and easy to follow.
-`;
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ reply })
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        reply: "Something went wrong. Please try again."
+      })
+    };
+  }
+};

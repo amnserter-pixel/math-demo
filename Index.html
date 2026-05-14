@@ -87,52 +87,51 @@
     <div id="error"></div>
     <div id="response"></div>
   </div>
+<script>
+  const tryBtn = document.getElementById("tryBtn");
+  const questionEl = document.getElementById("question");
+  const responseEl = document.getElementById("response");
+  const errorEl = document.getElementById("error");
 
-  <script>
-    const tryBtn = document.getElementById("tryBtn");
-    const questionEl = document.getElementById("question");
-    const responseEl = document.getElementById("response");
-    const errorEl = document.getElementById("error");
+  tryBtn.addEventListener("click", async () => {
+    const question = questionEl.value.trim();
 
-    tryBtn.addEventListener("click", async () => {
-      const question = questionEl.value.trim();
+    errorEl.style.display = "none";
+    responseEl.style.display = "none";
+    errorEl.textContent = "";
 
-      errorEl.style.display = "none";
-      responseEl.style.display = "none";
-      errorEl.textContent = "";
+    if (!question) {
+      errorEl.textContent = "Please paste one math problem first.";
+      errorEl.style.display = "block";
+      return;
+    }
 
-      if (!question) {
-        errorEl.textContent = "Please paste one math problem first.";
-        errorEl.style.display = "block";
-        return;
+    tryBtn.disabled = true;
+    tryBtn.textContent = "Thinking...";
+
+    try {
+      const res = await fetch("/.netlify/functions/demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problem: question })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.reply || data.error || "Something went wrong.");
       }
 
-      tryBtn.disabled = true;
-      tryBtn.textContent = "Thinking...";
-
-      try {
-        const res = await fetch("/.netlify/functions/demo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong.");
-        }
-
-        responseEl.textContent = data.reply;
-        responseEl.style.display = "block";
-      } catch (err) {
-        errorEl.textContent = err.message || "Something went wrong.";
-        errorEl.style.display = "block";
-      } finally {
-        tryBtn.disabled = false;
-        tryBtn.textContent = "Try It Now";
-      }
-    });
-  </script>
+      responseEl.textContent = (data.reply || "").replace(/\//g, "");
+      responseEl.style.display = "block";
+    } catch (err) {
+      errorEl.textContent = err.message || "Something went wrong.";
+      errorEl.style.display = "block";
+    } finally {
+      tryBtn.disabled = false;
+      tryBtn.textContent = "Try It Now";
+    }
+  });
+</script>
 </body>
 </html>

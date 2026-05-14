@@ -14,7 +14,7 @@ exports.handler = async function(event) {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -37,15 +37,18 @@ exports.handler = async function(event) {
 
     if (!response.ok) {
       return {
-        statusCode: response.status,
+        statusCode: 200,
         body: JSON.stringify({
-          reply: "The math coach could not start. Please try again in a moment."
+          reply:
+            "OpenAI error: " +
+            (data.error?.message || JSON.stringify(data))
         })
       };
     }
 
     const reply =
       data.output_text ||
+      data.output?.[0]?.content?.[0]?.text ||
       "I can help with this. Let's take it one step at a time.";
 
     return {
@@ -54,9 +57,9 @@ exports.handler = async function(event) {
     };
   } catch (error) {
     return {
-      statusCode: 500,
+      statusCode: 200,
       body: JSON.stringify({
-        reply: "Something went wrong. Please try again."
+        reply: "Function error: " + error.message
       })
     };
   }

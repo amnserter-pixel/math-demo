@@ -86,18 +86,30 @@
 
     <div id="error"></div>
     <div id="response"></div>
+
+    <div id="trialCta" style="display:none; margin-top:18px; text-align:center;">
+      <p style="font-size:16px; line-height:1.6; margin:0 0 14px;">
+        If this helped, start the free 14-day trial. No credit card required.
+      </p>
+      <a href="https://joyful-dodol-702077.netlify.app/" style="display:inline-block;padding:16px 24px;background:#111;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;letter-spacing:3px;text-transform:uppercase;font-weight:700;">
+        Start Free 14-Day Trial
+      </a>
+    </div>
   </div>
+
 <script>
   const tryBtn = document.getElementById("tryBtn");
   const questionEl = document.getElementById("question");
   const responseEl = document.getElementById("response");
   const errorEl = document.getElementById("error");
+  const trialCtaEl = document.getElementById("trialCta");
 
   tryBtn.addEventListener("click", async () => {
     const question = questionEl.value.trim();
 
     errorEl.style.display = "none";
     responseEl.style.display = "none";
+    trialCtaEl.style.display = "none";
     errorEl.textContent = "";
 
     if (!question) {
@@ -123,9 +135,11 @@
       }
 
       responseEl.textContent = (data.reply || "")
-  .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
-  .replace(/\*\*/g, "");
+        .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
+        .replace(/\*\*/g, "");
+
       responseEl.style.display = "block";
+      trialCtaEl.style.display = "block";
     } catch (err) {
       errorEl.textContent = err.message || "Something went wrong.";
       errorEl.style.display = "block";

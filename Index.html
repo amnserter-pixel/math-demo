@@ -122,7 +122,9 @@
         throw new Error(data.reply || data.error || "Something went wrong.");
       }
 
-      responseEl.textContent = (data.reply || "").replace(/\//g, "");
+      responseEl.textContent = (data.reply || "")
+  .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
+  .replace(/\*\*/g, "");
       responseEl.style.display = "block";
     } catch (err) {
       errorEl.textContent = err.message || "Something went wrong.";
